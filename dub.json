@@ -1,0 +1,9 @@
+{
+    "name": "topleaked",
+    "authors": [
+        "Grigory Smorkalov"
+    ],
+    "description": "A tool for searching memory leaks in core dumps",
+    "copyright": "Copyright © 2018, Grigory Smorkalov",
+    "license": "MIT",
+}

@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+topleaked.so
+topleaked.dylib
+topleaked.dll
+topleaked.a
+topleaked.lib
+topleaked-test-*
+*.exe
+*.o
+*.obj
+*.lst
