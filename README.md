@@ -1,13 +1,13 @@
 # topleaked
-This is a tool for searching memory leaks in core dumps. If you have a memory dump of a process that used too much memory you will want to use topleaked. It lookes for most frequent 8 bytes words in dump and write top N of them. Ussually top contains pointers to vtbl of leaked objects in case of C++ or pointers to functions in case of C. Inspired by [this question](https://stackoverflow.com/questions/27598986/how-to-analyze-memory-leak-from-coredump) and answers to it.
+This is a tool for searching memory leaks in core dumps. If you have a memory dump of a process that used too much memory you will want to use topleaked. It lookes for most frequent 8 bytes words in dump and write top N of them. Usually top contains pointers to vtbl of leaked objects in case of C++ or pointers to functions in case of C. Inspired by [this question](https://stackoverflow.com/questions/27598986/how-to-analyze-memory-leak-from-coredump) and answers to it.
 
 # It is
 * A simple tool that looks for most frequent things
-* 64-bit Little-Endian (x86_64 e.g) dumps compatible (other platforms support is in progress)
+* 64-bit Little-Endian (e.g. x86_64) dumps compatible (other platforms support is in progress)
 
 # It is NOT
-* Yet another valgrind. It does not work with process it self, it is only for dump analisys. If you can reproduce your memoty leak use a memory sanitizer.
-* Language or platform specific. It does not parse dump (using libelf e.g). It just read a file byte by byte and build a frequency top.
+* Yet another valgrind. It does not work with process itself, it is only for dump analisys. If you can reproduce your memory leak use a memory sanitizer.
+* Language or platform specific. It does not parse dump (e.g. using libelf). It just read a file byte by byte and build a frequency top.
 
 # Installation
 First you need a D compiler. topleaked is written in D language and you can get compiler from [official site](https://dlang.org). LDC is recommended as it is best in optimization.
@@ -33,7 +33,7 @@ It will compile and put executable in same directory. You can copy this executab
 # Usage
 If you installed package from dub then your commands to execute is
 ```
-dub -brelease-nobounds run topleaked -- <filename> [<options>...]
+dub run -brelease-nobounds topleaked -- <filename> [<options>...]
 ```
 In other cases you have the file and do the same with
 ```
@@ -52,6 +52,8 @@ To process hex from output into classes or functions from your code pass output 
 topleaked myapp.core -o gdb | gdb myapp myapp.core
 ```
 
+# Known issues
+Do not use 'gcore' for getting core dump on Linux. There are some format or alignment issues and results can not be interpreted as valid symbols. If it is just alignment issue it will be fixed soon. Use SIGABRT (kill -SIGABRT <pid>) for dumping memory.
 
 # To Do
 * 32-bit systems support
