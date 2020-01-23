@@ -14,12 +14,20 @@ void main(string[] args) {
     size_t size = 10;
     Format format = Format.human;
     bool time = false;
+    size_t offset;
+    size_t limit = size_t.max;
+    uint64_t pattern;
+    size_t around;
     try {
         auto opts = getopt(
             args,
             "size|n", "how many items from top should be printed", &size,
             "output|o", "use 'gdb' for passing output to gdb stdin, 'human' [default] for human readable output", &format, 
+            "offset|s", "start from position s, use it to offset gcore", &offset,
+	    "limit|l", "max number of 8byte words to read", &limit,
             "time|t", "print processing time", &time,
+	    "find|f", "find pattern", &pattern,
+	    "around|a", "szie of context of find", & around
         );
 		if (opts.helpWanted) {
 			defaultGetoptPrinter("Some information about the program.", opts.options);
@@ -40,17 +48,40 @@ void main(string[] args) {
 
     auto sw = StopWatch(AutoStart.no);
     sw.start();
-    
-    readFile(name).findMostFrequent(size).printResult(format);
+    if (pattern) {
+	auto res = readFile(name, offset, limit).findPattern(pattern, around, size);
+	foreach (row; res) {
+	    foreach(v; row) {
+		writef("0x%016x ", v);
+	    }
+	    writeln();
+	}
+    } else {
+	readFile(name, offset, limit).findMostFrequent(size).printResult(format);
+    }
     
     sw.stop();
     if (time) writeln("Done in ", sw.peek);
 }
 
-auto readFile(string name) {
+auto findPattern(Range)(Range range, uint64_t pattern, size_t around, size_t limit) {
+    uint64_t[][] result;
+    foreach (i, v; range) {
+	if (v == pattern) {
+	    result ~= range[i-around..i+around+1];
+	    if (result.length >= limit) {
+		break;
+	    }
+	}
+    }
+    return result;
+} 
+
+auto readFile(string name, size_t offset, size_t limit) {
     auto f = File(name);
+    f.seek(offset);
     ubyte[8] buf;
-    return f.byChunk(buf[]).map!read64.array;
+    return f.byChunk(buf[]).map!read64.take(limit).array;
 }
 
 void printResult(Range)(Range range, Format format) if (isInputRange!Range && is(ElementType!Range == ValCount)) {
