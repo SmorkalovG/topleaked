@@ -49,15 +49,15 @@ void main(string[] args) {
     auto sw = StopWatch(AutoStart.no);
     sw.start();
     if (pattern) {
-    auto res = readFile(name, offset, limit).findPattern(pattern, around, size);
-    foreach (row; res) {
-        foreach(v; row) {
-        writef("0x%016x ", v);
+        auto res = readFile(name, offset, limit).findPattern(pattern, around, size);
+        foreach (row; res) {
+            foreach(v; row) {
+                writef("0x%016x ", v);
+            }
+            writeln();
         }
-        writeln();
-    }
     } else {
-    readFile(name, offset, limit).findMostFrequent(size).printResult(format);
+        readFile(name, offset, limit).findMostFrequent(size).printResult(format);
     }
     
     sw.stop();
@@ -67,12 +67,12 @@ void main(string[] args) {
 auto findPattern(Range)(Range range, uint64_t pattern, size_t around, size_t limit) {
     uint64_t[][] result;
     foreach (i, v; range) {
-    if (v == pattern) {
-        result ~= range[i-around..i+around+1];
-        if (result.length >= limit) {
-        break;
+        if (v == pattern) {
+            result ~= range[i-around..i+around+1];
+            if (result.length >= limit) {
+                break;
+            }
         }
-    }
     }
     return result;
 } 
