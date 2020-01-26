@@ -24,40 +24,40 @@ void main(string[] args) {
             "size|n", "how many items from top should be printed", &size,
             "output|o", "use 'gdb' for passing output to gdb stdin, 'human' [default] for human readable output", &format, 
             "offset|s", "start from position s, use it to offset gcore", &offset,
-	    "limit|l", "max number of 8byte words to read", &limit,
+            "limit|l", "max number of 8byte words to read", &limit,
             "time|t", "print processing time", &time,
-	    "find|f", "find pattern", &pattern,
-	    "around|a", "szie of context of find", & around
+            "find|f", "find pattern", &pattern,
+            "around|a", "szie of context of find", & around
         );
-		if (opts.helpWanted) {
-			defaultGetoptPrinter("Some information about the program.", opts.options);
-			return;
-		}
+        if (opts.helpWanted) {
+            defaultGetoptPrinter("Some information about the program.", opts.options);
+            return;
+        }
     } catch (Exception e) {
         stderr.writeln(e.msg);
         return;
     }
-	
-	if (args.length != 2) {
-		stderr.writeln("No input file");
-		stderr.writeln(usage);
-		return;
-	}
-	
-	string name = args[1];
+    
+    if (args.length != 2) {
+        stderr.writeln("No input file");
+        stderr.writeln(usage);
+        return;
+    }
+    
+    string name = args[1];
 
     auto sw = StopWatch(AutoStart.no);
     sw.start();
     if (pattern) {
-	auto res = readFile(name, offset, limit).findPattern(pattern, around, size);
-	foreach (row; res) {
-	    foreach(v; row) {
-		writef("0x%016x ", v);
-	    }
-	    writeln();
-	}
+    auto res = readFile(name, offset, limit).findPattern(pattern, around, size);
+    foreach (row; res) {
+        foreach(v; row) {
+        writef("0x%016x ", v);
+        }
+        writeln();
+    }
     } else {
-	readFile(name, offset, limit).findMostFrequent(size).printResult(format);
+    readFile(name, offset, limit).findMostFrequent(size).printResult(format);
     }
     
     sw.stop();
@@ -67,12 +67,12 @@ void main(string[] args) {
 auto findPattern(Range)(Range range, uint64_t pattern, size_t around, size_t limit) {
     uint64_t[][] result;
     foreach (i, v; range) {
-	if (v == pattern) {
-	    result ~= range[i-around..i+around+1];
-	    if (result.length >= limit) {
-		break;
-	    }
-	}
+    if (v == pattern) {
+        result ~= range[i-around..i+around+1];
+        if (result.length >= limit) {
+        break;
+        }
+    }
     }
     return result;
 } 

@@ -31,11 +31,11 @@ dub build -brelease-nobounds
 It will compile and put executable in same directory. You can copy this executable to any folder or add to PATH. It does not have any dependencies and can be moved.
 
 # Usage
-If you installed package from dub then your commands to execute is
+If you installed package from dub then your command to execute is
 ```
-dub run -brelease-nobounds topleaked -- <filename> [<options>...]
+dub run topleaked -brelease-nobounds -- <filename> [<options>...]
 ```
-In other cases you have the file and do the same with
+In other cases you have the executable file and can do the same with
 ```
 topleaked <filename> [<options>...]
 ```
@@ -43,8 +43,13 @@ topleaked <filename> [<options>...]
 Options are
 ```
 -n   --size how many items from top should be printed
--o --output use 'gdb' for passing output to gdb, 'human' [default] for human readable output
+-o --output use 'gdb' for passing output to gdb stdin, 'human' [default] for human readable output
+-s --offset start from position s, use it to offset gcore
+-l  --limit max number of 8byte words to read
 -t   --time print processing time
+-f   --find find pattern
+-a --around szie of context of find
+-h   --help This help information.
 ```
 
 To process hex from output into classes or functions from your code pass output to gdb
@@ -53,7 +58,7 @@ topleaked myapp.core -o gdb | gdb myapp myapp.core
 ```
 
 # Known issues
-Do not use 'gcore' for getting core dump on Linux. There are some format or alignment issues and results can not be interpreted as valid symbols. If it is just alignment issue it will be fixed soon. Use SIGABRT (kill -SIGABRT <pid>) for dumping memory.
+Do not use 'gcore' for getting core dump on Linux. There are some format or alignment issues and results can not be interpreted as valid symbols. Try --offset 4 or some other to solve this problem. Or use SIGABRT (kill -SIGABRT <pid>) for dumping memory.
 
 # To Do
 * 32-bit systems support
