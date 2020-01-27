@@ -19,7 +19,7 @@ dub fetch topleaked
 ```
 This command will download sources to local dub registry. To use it run
 ```
-dub -brelease-nobounds run topleaked -- <arguments>
+dub run -brelease-nobounds topleaked -- <arguments>
 ```
 This command will compile sources if needed and run. Arguments to topleaked shoul be passed after --
 
