@@ -50,8 +50,9 @@ Options are
 -f         --find find pattern
    --memberOffset offset of member starting from found valur passed by -f
      --memberType size of member starting from found valur passed by -f, may be uint8, uint16, uint32, uint64
--h         --help This help information.```
+-h         --help This help information.
 
+```
 To process hex from output into classes or functions from your code pass output to gdb
 ```
 topleaked myapp.core -o gdb | gdb myapp myapp.core
