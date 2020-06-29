@@ -5,8 +5,11 @@ import std.getopt;
 import std.bitmanip;
 import std.datetime.stopwatch;
 import core.stdc.stdint;
+import std.conv;
 
 enum Format {human, gdb}
+
+enum MemberType {uint8, uint16, uint32, uint64}
 
 string usage = "Usage:\n    topleaked <filename> [<options>...]";
 
@@ -16,8 +19,10 @@ void main(string[] args) {
     bool time = false;
     size_t offset;
     size_t limit = size_t.max;
+    string patternStr;
     uint64_t pattern;
-    size_t around;
+    size_t memberOffset;
+    MemberType memberType;
     try {
         auto opts = getopt(
             args,
@@ -26,12 +31,19 @@ void main(string[] args) {
             "offset|s", "start from position s, use it to offset gcore", &offset,
             "limit|l", "max number of 8byte words to read", &limit,
             "time|t", "print processing time", &time,
-            "find|f", "find pattern", &pattern,
-            "around|a", "szie of context of find", & around
+            "find|f", "find pattern", &patternStr,
+            "memberOffset", "offset of member starting from found valur passed by -f", &memberOffset,
+            "memberType", "size of member starting from found valur passed by -f, may be uint8, uint16, uint32, uint64", &memberType,
         );
         if (opts.helpWanted) {
             defaultGetoptPrinter("Some information about the program.", opts.options);
             return;
+        }
+        if (!patternStr.empty) {
+            if (patternStr.startsWith("0x")) {
+                patternStr = patternStr[2..$];
+            }
+            pattern = parse!uint64_t(patternStr, 16);
         }
     } catch (Exception e) {
         stderr.writeln(e.msg);
@@ -48,14 +60,14 @@ void main(string[] args) {
 
     auto sw = StopWatch(AutoStart.no);
     sw.start();
-    if (pattern) {
-        auto res = readFile(name, offset, limit).findPattern(pattern, around, size);
-        foreach (row; res) {
-            foreach(v; row) {
-                writef("0x%016x ", v);
-            }
-            writeln();
+    if (patternStr) {
+        final switch(memberType) {
+        case MemberType.uint8:  readFile(name, offset, limit).findMember!uint8_t(pattern, memberOffset).findMostFrequent(size).printResult(format);  break;
+        case MemberType.uint16: readFile(name, offset, limit).findMember!uint16_t(pattern, memberOffset).findMostFrequent(size).printResult(format); break;
+        case MemberType.uint32: readFile(name, offset, limit).findMember!uint32_t(pattern, memberOffset).findMostFrequent(size).printResult(format); break;
+        case MemberType.uint64: readFile(name, offset, limit).findMember!uint64_t(pattern, memberOffset).findMostFrequent(size).printResult(format); break;
         }
+
     } else {
         readFile(name, offset, limit).findMostFrequent(size).printResult(format);
     }
@@ -64,14 +76,16 @@ void main(string[] args) {
     if (time) writeln("Done in ", sw.peek);
 }
 
-auto findPattern(Range)(Range range, uint64_t pattern, size_t around, size_t limit) {
-    uint64_t[][] result;
+auto findMember(Result)(uint64_t[] range, uint64_t pattern, size_t offset) {
+    Result[] result;
     foreach (i, v; range) {
         if (v == pattern) {
-            result ~= range[i-around..i+around+1];
-            if (result.length >= limit) {
+            byte* ptr = cast(byte*) &range[i];
+            ptr += offset;
+            if (ptr > cast(byte*) &range[$-1]) {
                 break;
             }
+            result ~= *cast(Result*)ptr;
         }
     }
     return result;
@@ -114,7 +128,7 @@ uint64_t read64(ubyte[] src) {
     return std.bitmanip.read!(uint64_t, std.system.Endian.littleEndian)(src);
 }
 
-auto findMostFrequent(Range)(Range input, size_t maxSize = 10) if (isRandomAccessRange!Range && is(ElementType!Range == uint64_t)) {
+auto findMostFrequent(Range)(Range input, size_t maxSize = 10) if (isRandomAccessRange!Range) {
     auto all = input.sort;
     ValCount[] res = new ValCount[min(all.length, maxSize)];
     return all.group.map!((p) => ValCount(p[0],p[1])).topNCopy!"a.count>b.count"(res, Yes.sortOutput);
